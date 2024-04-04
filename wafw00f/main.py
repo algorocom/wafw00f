@@ -51,7 +51,7 @@ class WAFW00F(waftoolsengine):
                 continue
             if attack == 'xss':
                 params[create_random_param_name()] = self.xsstring
-            elif attack == 'sqi':
+            elif attack == 'sqli':
                 params[create_random_param_name()] = self.sqlistring
             elif attack == 'lfi':
                 params[create_random_param_name()] = self.lfistring
@@ -94,7 +94,7 @@ class WAFW00F(waftoolsengine):
     def centralAttack(self):
         return self.Request(
             path=self.path,
-            params=self._build_params(['xss','sqi','lfi'])
+            params=self._build_params(['xss','sqli','lfi'])
         )
 
     def sqliAttack(self):
