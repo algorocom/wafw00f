@@ -35,14 +35,28 @@ class WAFW00F(waftoolsengine):
     xxestring = '<!ENTITY xxe SYSTEM "file:///etc/shadow">]><pwn>&hack;</pwn>'
 
     def __init__(self, target='www.example.com', debuglevel=0, path='/',
-                 followredirect=True, extraheaders={}, proxies=None):
+                 followredirect=True, extraheaders={}, proxies=None, disabled_attacks=None):
 
         self.log = logging.getLogger('wafw00f')
         self.attackres = None
         waftoolsengine.__init__(self, target, debuglevel, path, proxies, followredirect, extraheaders)
         self.knowledge = dict(generic=dict(found=False, reason=''), wafname=list())
         self.rq = self.normalRequest()
+        self.disabled_attacks = disabled_attacks
 
+    def _build_params(self, attack_list):
+        params = {}
+        for attack in attack_list:
+            if self.disabled_attacks and attack in self.disabled_attacks:
+                continue
+            if attack == 'xss':
+                params[create_random_param_name()] = self.xsstring
+            elif attack == 'sqi':
+                params[create_random_param_name()] = self.sqlistring
+            elif attack == 'lfi':
+                params[create_random_param_name()] = self.lfistring
+        return params
+        
     def normalRequest(self):
         return self.Request()
 
@@ -80,11 +94,7 @@ class WAFW00F(waftoolsengine):
     def centralAttack(self):
         return self.Request(
             path=self.path,
-            params={
-                create_random_param_name(): self.xsstring,
-                create_random_param_name(): self.sqlistring,
-                create_random_param_name(): self.lfistring
-            }
+            params=self._build_params(['xss','sqi','lfi'])
         )
 
     def sqliAttack(self):
@@ -139,40 +149,49 @@ class WAFW00F(waftoolsengine):
                     return True
 
             # Testing the status code upon sending a xss attack
-            resp2, xss_url = self.performCheck(self.xssAttack)
-            if resp1.status_code != resp2.status_code:
-                self.log.info('Server returned a different response when a XSS attack vector was tried.')
-                reason = reasons[2]
-                reason += '\r\n'
-                reason += 'Normal response code is "%s",' % resp1.status_code
-                reason += ' while the response code to cross-site scripting attack is "%s"' % resp2.status_code
-                self.knowledge['generic']['reason'] = reason
-                self.knowledge['generic']['found'] = True
-                return xss_url
+            if not self.disabled_attacks or 'xss' not in self.disabled_attacks:
+                resp2, xss_url = self.performCheck(self.xssAttack)
+                if resp1.status_code != resp2.status_code:
+                    self.log.info('Server returned a different response when a XSS attack vector was tried.')
+                    reason = reasons[2]
+                    reason += '\r\n'
+                    reason += 'Normal response code is "%s",' % resp1.status_code
+                    reason += ' while the response code to cross-site scripting attack is "%s"' % resp2.status_code
+                    self.knowledge['generic']['reason'] = reason
+                    self.knowledge['generic']['found'] = True
+                    return xss_url
+            else:
+                self.log.warn('XSS attack is disabled')
 
             # Testing the status code upon sending a lfi attack
-            resp2, lfi_url = self.performCheck(self.lfiAttack)
-            if resp1.status_code != resp2.status_code:
-                self.log.info('Server returned a different response when a directory traversal was attempted.')
-                reason = reasons[2]
-                reason += '\r\n'
-                reason += 'Normal response code is "%s",' % resp1.status_code
-                reason += ' while the response code to a file inclusion attack is "%s"' % resp2.status_code
-                self.knowledge['generic']['reason'] = reason
-                self.knowledge['generic']['found'] = True
-                return lfi_url
+            if not self.disabled_attacks or 'lfi' not in self.disabled_attacks:
+                resp2, lfi_url = self.performCheck(self.lfiAttack)
+                if resp1.status_code != resp2.status_code:
+                    self.log.info('Server returned a different response when a directory traversal was attempted.')
+                    reason = reasons[2]
+                    reason += '\r\n'
+                    reason += 'Normal response code is "%s",' % resp1.status_code
+                    reason += ' while the response code to a file inclusion attack is "%s"' % resp2.status_code
+                    self.knowledge['generic']['reason'] = reason
+                    self.knowledge['generic']['found'] = True
+                    return lfi_url
+            else:
+                self.log.warn('LFI attack is disabled')
 
             # Testing the status code upon sending a sqli attack
-            resp2, sqli_url = self.performCheck(self.sqliAttack)
-            if resp1.status_code != resp2.status_code:
-                self.log.info('Server returned a different response when a SQLi was attempted.')
-                reason = reasons[2]
-                reason += '\r\n'
-                reason += 'Normal response code is "%s",' % resp1.status_code
-                reason += ' while the response code to a SQL injection attack is "%s"' % resp2.status_code
-                self.knowledge['generic']['reason'] = reason
-                self.knowledge['generic']['found'] = True
-                return sqli_url
+            if not self.disabled_attacks or 'sqli' not in self.disabled_attacks:
+                resp2, sqli_url = self.performCheck(self.sqliAttack)
+                if resp1.status_code != resp2.status_code:
+                    self.log.info('Server returned a different response when a SQLi was attempted.')
+                    reason = reasons[2]
+                    reason += '\r\n'
+                    reason += 'Normal response code is "%s",' % resp1.status_code
+                    reason += ' while the response code to a SQL injection attack is "%s"' % resp2.status_code
+                    self.knowledge['generic']['reason'] = reason
+                    self.knowledge['generic']['found'] = True
+                    return sqli_url
+            else:
+                self.log.warn('SQLi attack is disabled')
 
             # Checking for the Server header after sending malicious requests
             normalserver, attackresponse_server = '', ''
@@ -384,6 +403,13 @@ def main():
     parser.add_option('--no-colors', dest='colors', action='store_false',
                       default=True, help='Disable ANSI colors in output.')
 
+    parser.add_option('--no-xss', dest='no_xss', action='store_true',default=False,help='Disable XSS attack')
+    parser.add_option('--no-lfi', dest='no_lfi', action='store_true',default=False,help='Disable LFI attack')
+    parser.add_option('--no-sqli', dest='no_sqli', action='store_true',default=False,help='Disable SQLi attack')
+    parser.add_option('--no-rce', dest='no_rce', action='store_true',default=False,help='Disable OSCI/RCE attack')
+    parser.add_option('--no-xxe', dest='no_xxe', action='store_true',default=False,help='Disable XXE attack')
+    parser.add_option('--passive-only', dest='passive_only', action='store_true',default=False,help='Alias for --no-xss,no-lfi,no-sqli,--no-rce')
+
     options, args = parser.parse_args()
 
     logging.basicConfig(level=calclogginglevel(options.verbose))
@@ -459,6 +485,21 @@ def main():
             sys.exit(1)
     else:
         targets = args
+
+    disabled_attacks = []
+    if options.no_xss or options.passive_only:
+        disabled_attacks.append('xss')
+    if options.no_lfi or options.passive_only:
+        disabled_attacks.append('lfi')
+    if options.no_sqli or options.passive_only:
+        disabled_attacks.append('sqli')
+    if options.no_rce or options.passive_only:
+        disabled_attacks.append('osci')
+    if options.no_xxe or options.passive_only:
+        disabled_attacks.append('xxe')
+
+    # NOTE: RCE/OSCI and XXE are already not actually executed anywhere
+
     results = []
     for target in targets:
         if not target.startswith('http'):
@@ -479,7 +520,7 @@ def main():
             }
         attacker = WAFW00F(target, debuglevel=options.verbose, path=path,
                     followredirect=options.followredirect, extraheaders=extraheaders,
-                        proxies=proxies)
+                        proxies=proxies,disabled_attacks=disabled_attacks)
         if attacker.rq is None:
             log.error('Site %s appears to be down' % hostname)
             continue
