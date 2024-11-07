@@ -81,7 +81,8 @@ $ wafw00f -l
   ASPA Firewall                    ASPA Engineering Co.
   Astra                            Czar Securities
   AWS Elastic Load Balancer        Amazon
-  AzionCDN                         AzionCDN
+  Azion Edge Firewall              Azion
+  Azure Application Gateway        Microsoft
   Azure Front Door                 Microsoft
   Barikode                         Ethic Ninja
   Barracuda                        Barracuda Networks
@@ -119,6 +120,7 @@ $ wafw00f -l
   FirePass                         F5 Networks
   FortiWeb                         Fortinet
   GoDaddy Website Protection       GoDaddy
+  Google Cloud App Armor           Google Cloud
   Greywizard                       Grey Wizard
   Huawei Cloud Firewall            Huawei
   HyperGuard                       Art of Defense
@@ -218,6 +220,7 @@ $ wafw00f -l
   YXLink                           YxLink Technologies
   Zenedge                          Zenedge
   ZScaler                          Accenture
+  Envoy                            EnvoyProxy
 ```
 
 ## How do I use it?
@@ -254,6 +257,12 @@ The following should do the trick:
 
 ```
 python setup.py install
+```
+
+or by using pipx
+
+```
+pipx install git+https://github.com/EnableSecurity/wafw00f.git
 ```
 
 It is also possible to run it within a docker container. Clone this repository first and build the Docker image using `docker build . -t wafw00f`.

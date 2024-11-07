@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 '''
-Copyright (C) 2022, WAFW00F Developers.
+Copyright (C) 2024, WAFW00F Developers.
 See the LICENSE file for copying permission.
 '''
 
@@ -18,6 +18,9 @@ def is_waf(self):
         return True
 
     if self.matchHeader(('Server', r'aws.?elb'), attack=True):
+        return True
+
+    if self.matchHeader(('X-Blocked-By-WAF', 'Blocked_by_custom_response_for_AWSManagedRules.*')):
         return True
 
     return False

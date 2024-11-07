@@ -4,11 +4,11 @@ Copyright (C) 2024, WAFW00F Developers.
 See the LICENSE file for copying permission.
 '''
 
-NAME = 'SecKing (SecKing)'
+NAME = 'Google Cloud App Armor (Google Cloud)'
 
 
 def is_waf(self):
-    if self.matchHeader(('Server', r'secking(.?waf)?')):
+    if self.matchHeader(('Via', '1.1 google')):
         return True
 
     return False
