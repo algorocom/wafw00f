@@ -13,11 +13,15 @@ def load_plugins():
     get_path = partial(os.path.join, here)
     plugin_dir = get_path('plugins')
 
+    searchpath = [plugin_dir]
+    if os.environ.get('WAFW00F_PLUGIN_DIR'):
+        searchpath.append(os.environ.get('WAFW00F_PLUGIN_DIR'))
+
     plugin_base = PluginBase(
         package='wafw00f.plugins', searchpath=[plugin_dir]
     )
     plugin_source = plugin_base.make_plugin_source(
-        searchpath=[plugin_dir], persist=True
+        searchpath=searchpath, persist=True
     )
 
     plugin_dict = {}
