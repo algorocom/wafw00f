@@ -34,7 +34,7 @@ class WAFW00F(waftoolsengine):
     xxestring = r'<!ENTITY xxe SYSTEM "file:///etc/shadow">]><pwn>&hack;</pwn>'
 
     def __init__(self, target='www.example.com', debuglevel=0, path='/',
-                 followredirect=True, extraheaders={}, proxies=None, disabled_attacks=None):
+                 followredirect=True, extraheaders={}, proxies=None, disabled_attacks=None, timeout=7):
 
         self.log = logging.getLogger('wafw00f')
         self.attackres = None

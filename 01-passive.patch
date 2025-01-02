@@ -7,7 +7,7 @@ index a9aef2b..ec3309b 100644
  
      def __init__(self, target='www.example.com', debuglevel=0, path='/',
 -                 followredirect=True, extraheaders={}, proxies=None, timeout=7):
-+                 followredirect=True, extraheaders={}, proxies=None, disabled_attacks=None):
++                 followredirect=True, extraheaders={}, proxies=None, disabled_attacks=None, timeout=7):
  
          self.log = logging.getLogger('wafw00f')
          self.attackres = None
