@@ -6,10 +6,12 @@ See the LICENSE file for copying permission.
 
 NAME = 'CacheWall (Varnish)'
 
+# Disabled some of the matches which simply indicate that Varnish is present
+# and not necessarily CacheWall
 
 def is_waf(self):
-    if self.matchHeader(('Server', 'Varnish')):
-        return True
+#    if self.matchHeader(('Server', 'Varnish')):
+#        return True
 
     if self.matchHeader(('X-Varnish', '.+')):
         return True
@@ -26,7 +28,7 @@ def is_waf(self):
     if self.matchContent(r'403 naughty.{0,10}?not nice!'):
         return True
 
-    if self.matchContent(r'varnish cache server'):
-        return True
+#    if self.matchContent(r'varnish cache server'):
+#        return True
 
     return False

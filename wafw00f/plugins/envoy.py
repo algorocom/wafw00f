@@ -8,6 +8,9 @@ NAME = 'Envoy (EnvoyProxy)'
 
 
 def is_waf(self):
+    # The existence of Envoy in the path is not particularly useful
+    # aside from rate limiting it may do
+    return False
     if self.matchHeader(('server', 'envoy')):
         return True
 
