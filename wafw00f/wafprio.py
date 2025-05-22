@@ -65,6 +65,7 @@ wafdetectionsprio = [
 	'Envoy (EnvoyProxy)',
 	'Expression Engine (EllisLab)',
 	'Fastly (Fastly CDN)',
+	'Fastly NGWAF',
 	'FirePass (F5 Networks)',
 	'FortiGate (Fortinet)',
 	'FortiGuard (Fortinet)',
